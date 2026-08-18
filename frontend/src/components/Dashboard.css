@@ -1,0 +1,78 @@
+/* src/components/Dashboard.css */
+
+.dashboard-container {
+  display: flex;
+  height: calc(100vh - 80px); /* Full height minus Navbar */
+  width: 100vw;
+  background-color: #fff;
+}
+
+.doc-viewer {
+  flex: 1;
+  border-right: 2px solid #D7CCC8;
+  background-color: #f5f5f5;
+}
+
+.analysis-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #FDFBF7;
+  padding: 40px;
+}
+
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid rgba(62,39,35,0.1);
+  padding-bottom: 20px;
+}
+
+.risk-badge.high {
+  background-color: #FFEBEE;
+  color: #D32F2F;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.analysis-scroll {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.analysis-item {
+  margin-bottom: 30px;
+}
+
+.analysis-item.flagged {
+  border-left: 4px solid #D32F2F;
+  padding-left: 20px;
+  background: rgba(211, 47, 47, 0.02);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.ai-explanation {
+  margin-top: 15px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #D7CCC8;
+  font-size: 0.95rem;
+}
+
+.btn-consult-dash {
+  width: 100%;
+  padding: 18px;
+  background-color: #3E2723;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}

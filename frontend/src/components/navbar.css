@@ -1,0 +1,141 @@
+/* src/components/Navbar.css */
+
+/* 1. THE MASTER WRAPPER (Sticky + Transparency Logic) */
+.navbar-master {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: transparent; /* Clean at the top */
+  padding: 10px 0;
+}
+
+/* THE SCROLL EFFECT (Triggered by React state) */
+.navbar-master.scrolled {
+  background-color: rgba(255, 255, 255, 0.85); /* Glass-white */
+  backdrop-filter: blur(15px); /* Premium blur effect */
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(62, 39, 35, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  padding: 0; /* Snaps to 80px height */
+}
+
+/* 2. THE FLEX CONTAINER (The Spacing Logic) */
+.navbar-container {
+  width: 100%; /* Spans full width */
+  max-width: 100%; 
+  margin: 0 auto;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Pushes content to extreme ends */
+  padding: 0 60px; /* Your margin space from screen edges */
+}
+
+/* 3. LOGO (Extreme Left) */
+.navbar-logo {
+  flex: 0 0 auto;
+}
+
+.logo-text {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #3E2723; /* Espresso */
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 4. HUB LINKS (Balanced in Center) */
+.navbar-links {
+  display: flex;
+  list-style: none;
+  gap: 40px;
+  margin: 0;
+  padding: 0;
+  flex: 1; /* Grows to fill middle space */
+  justify-content: center; /* Centers the links within the flexible space */
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #5D4037; /* Coffee */
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 5px 0;
+}
+
+.nav-link:hover {
+  color: #3E2723;
+}
+
+/* Underline Reveal Animation */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #3E2723;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* 5. ACTIONS (Extreme Right) */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  flex: 0 0 auto;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #3E2723;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: opacity 0.2s;
+}
+
+.btn-text:hover {
+  opacity: 0.7;
+}
+
+.btn-cocoa-nav {
+  background-color: #3E2723; /* Cocoa */
+  color: #FDFBF7; /* Cream */
+  border: none;
+  padding: 12px 28px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(62, 39, 35, 0.15);
+  white-space: nowrap;
+}
+
+.btn-cocoa-nav:hover {
+  background-color: #2D1B19;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(62, 39, 35, 0.25);
+}
+
+/* 6. RESPONSIVE FIX (Hide links on mobile) */
+@media (max-width: 900px) {
+  .navbar-links {
+    display: none;
+  }
+  .navbar-container {
+    padding: 0 30px; /* Tighter padding for mobile */
+  }
+}

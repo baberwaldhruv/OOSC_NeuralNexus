@@ -1,0 +1,147 @@
+/* src/components/Methodology.css */
+
+.meth-container {
+  padding: 100px 20px;
+  max-width: 900px; /* Narrower for a focused timeline look */
+  margin: 0 auto;
+}
+
+.meth-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.meth-intro {
+  color: #5D4037;
+  opacity: 0.7;
+  margin-top: 10px;
+}
+
+.meth-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* Gap is handled by the connector line */
+}
+
+.meth-item {
+  display: flex;
+  gap: 30px;
+}
+
+/* Timeline Vertical Line Logic */
+.meth-number-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.meth-number {
+  background-color: #3E2723;
+  color: #FDFBF7;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 0.8rem;
+  z-index: 2;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.line-connector {
+  width: 2px;
+  flex-grow: 1;
+  background-color: #D7CCC8; /* Latte color */
+  margin: 10px 0;
+  transition: background-color 0.3s ease;
+}
+
+/* Content Card Styling */
+.meth-content-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px; /* Added padding for better hover hit area */
+  padding-bottom: 60px; 
+  flex: 1;
+  transition: all 0.3s ease; /* Smooth transition for everything */
+  border-radius: 12px;
+  border: 1px solid transparent; /* Prevents layout shift on hover */
+}
+
+.meth-card-icon {
+  font-size: 1.8rem;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.meth-text h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  color: #3E2723;
+}
+
+.meth-text p {
+  margin: 0;
+  color: #5D4037;
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+/* Final CTA */
+.meth-cta {
+  text-align: center;
+  margin-top: 40px;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+  border: 1px dashed #D7CCC8;
+}
+
+.btn-consult-simple {
+  background: none;
+  border: 1px solid #3E2723;
+  color: #3E2723;
+  padding: 10px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  border-radius: 4px;
+}
+
+.btn-consult-simple:hover {
+  background: #3E2723;
+  color: white;
+}
+/* 2. HOVER EFFECTS */
+
+/* Lift the card and add a subtle shadow/border */
+.meth-item:hover .meth-content-card {
+  background-color: #ffffff;
+  transform: translateX(10px); /* Subtle slide to the right */
+  box-shadow: 0 10px 25px rgba(62, 39, 35, 0.1);
+  border-color: #D7CCC8;
+}
+
+/* Scale up the step number and change color */
+.meth-item:hover .meth-number {
+  background-color: #5D4037; /* Slightly lighter brown */
+  transform: scale(1.15);
+}
+
+/* Change the connector line color when hovering the item */
+.meth-item:hover .line-connector {
+  background-color: #3E2723;
+}
+
+/* Make the icon pop */
+.meth-item:hover .meth-card-icon {
+  transform: rotate(-5deg) scale(1.1);
+  background-color: #FDFBF7;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}

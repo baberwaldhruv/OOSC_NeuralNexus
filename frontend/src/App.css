@@ -1,0 +1,161 @@
+/* src/App.css */
+
+:root {
+  --cream: #FDFBF7;
+  --latte: #D7CCC8;
+  --coffee: #5D4037;
+  --espresso: #3E2723;
+  --white: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background-color: var(--cream);
+  color: var(--espresso);
+  overflow-x: hidden;
+}
+
+.serif {
+  font-family: 'Playfair Display', serif;
+}
+
+/* CONTAINER LOGIC */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 2000;
+  background-color: transparent; /* Navbar handles blur/bg */
+}
+
+.landing-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* VISUAL RHYTHM: Alternating colors for sections */
+/* Hero(odd)=Cream, UseCases(even)=White, Methodology(odd)=Cream, etc. */
+.landing-content > section:nth-child(even),
+.landing-content > div:nth-child(even) section {
+  background-color: var(--white);
+}
+
+.landing-content > section:nth-child(odd),
+.landing-content > div:nth-child(odd) section {
+  background-color: var(--cream);
+}
+
+/* Offset for Sticky Navbar during smooth scroll */
+section, [id] {
+  scroll-margin-top: 80px;
+}
+
+/* FOOTER */
+.app-footer {
+  background-color: var(--espresso);
+  color: var(--cream);
+  padding: 80px 40px;
+  text-align: center;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-subtext {
+  opacity: 0.6;
+  margin-top: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.footer-divider {
+  height: 1px;
+  background-color: rgba(215, 204, 200, 0.1);
+  margin: 30px auto;
+  max-width: 200px;
+}
+
+.footer-copyright {
+  font-size: 0.85rem;
+  opacity: 0.4;
+}
+
+/* TEXT HIGHLIGHT UTILITY */
+.highlight-text {
+  color: var(--coffee);
+  position: relative;
+  z-index: 1;
+}
+
+.highlight-text::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 35%;
+  background-color: rgba(215, 204, 200, 0.3);
+  bottom: 4px;
+  left: 0;
+  z-index: -1;
+}
+/* --- LOADING SCREEN STYLES --- */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--cream);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+
+.loading-box {
+  text-align: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(62, 39, 35, 0.1);
+  border-top: 4px solid var(--espresso);
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+.loading-status {
+  margin-top: 15px;
+  color: var(--coffee);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

@@ -1,0 +1,27 @@
+/* src/index.css */
+:root {
+  --cream: #FDFBF7;
+  --espresso: #3E2723;
+  --latte: #D7CCC8;
+  --coffee: #5D4037;
+  --white: #FFFFFF;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--cream);
+  color: var(--espresso);
+  font-family: 'Inter', sans-serif; /* Clean sans-serif for body */
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .serif {
+  font-family: 'Playfair Display', serif; /* Elegant serif for headings */
+}
+
+/* Your requested letters highlighting */
+::selection {
+  background: var(--latte);
+  color: var(--espresso);
+}

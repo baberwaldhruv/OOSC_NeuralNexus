@@ -1,0 +1,110 @@
+/* src/components/Hero.css */
+
+.hero-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 20px;
+  gap: 60px; /* Increased gap for that "airy" Enhancv feel */
+}
+
+.hero-content {
+  flex: 1.2; /* Text takes slightly more space */
+  text-align: left;
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 4rem; /* Big, bold statement */
+  font-weight: 800;
+  line-height: 1.1;
+  color: #3E2723;
+  margin-bottom: 24px;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: #5D4037;
+  margin-bottom: 48px;
+  max-width: 500px; /* Prevents text from stretching too far */
+  opacity: 0.9;
+}
+
+/* THE COCOA BUTTON */
+.btn-cocoa-upload {
+  display: inline-block;
+  background-color: #3E2723;
+  color: #FDFBF7;
+  padding: 18px 48px;
+  border-radius: 6px; /* Sharper corners like Enhancv */
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  box-shadow: 0 4px 14px rgba(62, 39, 35, 0.25);
+}
+
+.btn-cocoa-upload:hover {
+  background-color: #2D1B19;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(62, 39, 35, 0.35);
+}
+.file-input-hidden {
+  display: none;
+}
+
+/* THE FLOATING DOCUMENT (Right Side) */
+.hero-visual {
+  flex: 0.8;
+  display: flex;
+  justify-content: flex-end;
+  perspective: 1500px; /* Deep 3D effect */
+}
+
+.document-placeholder {
+  width: 400px;
+  height: 560px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 
+    -20px 30px 60px rgba(62, 39, 35, 0.12), 
+    0 10px 20px rgba(0, 0, 0, 0.05);
+  padding: 50px;
+  transform: rotateY(-15deg) rotateX(8deg) rotateZ(-2deg); /* The "Enhancv Tilt" */
+  border: 1px solid rgba(215, 204, 200, 0.3);
+  transition: transform 0.5s ease;
+}
+
+.document-placeholder:hover {
+  transform: rotateY(-5deg) rotateX(2deg) rotateZ(0deg); /* Straightens on hover */
+}
+
+/* SKELETON LINES (Content of the doc) */
+.skeleton-line {
+  height: 8px;
+  background: #F5F2ED;
+  margin-bottom: 12px;
+  border-radius: 2px;
+}
+.skeleton-line.title { width: 50%; height: 16px; background: #D7CCC8; margin-bottom: 30px; }
+.skeleton-line.short { width: 30%; }
+
+.ai-tag {
+  position: absolute;
+  bottom: 60px;
+  right: -30px;
+  background: #3E2723;
+  color: #FDFBF7;
+  padding: 12px 20px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
