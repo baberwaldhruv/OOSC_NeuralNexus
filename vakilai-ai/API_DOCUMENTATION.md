@@ -16,8 +16,15 @@ The service is responsible for:
 
 The main VakilAI application can communicate with this service through HTTP APIs.
 
-> **Integration Note:** The service is currently under development. The deployment URL will be provided once the service is deployed. The endpoint paths and response structures below can be used for integration planning.
+> **Integration Note:** The service is currently under development.  The endpoint paths and response structures below can be used for integration planning.
 
+# Base URL
+
+The deployed API is available at:
+
+https://oosc-neuralnexus.onrender.com
+
+All API endpoints should be accessed relative to this base URL.
 ---
 
 # API Endpoints
