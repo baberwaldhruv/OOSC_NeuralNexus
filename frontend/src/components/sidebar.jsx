@@ -7,13 +7,24 @@ import {
   PanelLeftClose, 
   PanelLeftOpen, 
   Trash2, 
-  MessageSquare 
+  MessageSquare,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '../Context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Sidebar({ onNewChat, recentChats = [], onSelectChat, onClearHistory }) {
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchInput, setShowSearchInput] = useState(false);
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   const filteredChats = recentChats.filter((chat) =>
     (chat.title || chat).toLowerCase().includes(searchQuery.toLowerCase())
@@ -26,7 +37,7 @@ export default function Sidebar({ onNewChat, recentChats = [], onSelectChat, onC
       } flex flex-col justify-between bg-[#131314] border-r border-[#1f1f21] h-screen transition-[width] duration-300 ease-in-out select-none z-30 shrink-0 overflow-hidden`}
     >
       <div className="flex flex-col p-3">
-        {/* Header: Centered toggle when collapsed, Full bar when expanded */}
+        {/* Header */}
         <div className={`flex items-center mb-5 ${isOpen ? 'justify-between px-1' : 'justify-center'}`}>
           {isOpen && (
             <div className="flex items-center gap-2.5 min-w-0">
@@ -51,7 +62,6 @@ export default function Sidebar({ onNewChat, recentChats = [], onSelectChat, onC
 
         {/* Core Actions */}
         <div className="flex flex-col gap-1.5">
-          {/* 1. New Chat */}
           <button
             onClick={onNewChat}
             className={`flex items-center gap-3.5 rounded-xl hover:bg-[#1e1f20] text-[#c4c7c5] hover:text-white transition-colors group ${
@@ -63,7 +73,6 @@ export default function Sidebar({ onNewChat, recentChats = [], onSelectChat, onC
             {isOpen && <span className="text-[14px] font-normal truncate">New chat</span>}
           </button>
 
-          {/* 2. Search Chats */}
           <div className="flex flex-col">
             <button
               onClick={() => {
@@ -97,7 +106,6 @@ export default function Sidebar({ onNewChat, recentChats = [], onSelectChat, onC
             )}
           </div>
 
-          {/* 3. Services */}
           <button
             className={`flex items-center gap-3.5 rounded-xl hover:bg-[#1e1f20] text-[#c4c7c5] hover:text-white transition-colors group ${
               isOpen ? 'px-3 py-2.5 text-left' : 'justify-center p-2.5'
@@ -109,7 +117,7 @@ export default function Sidebar({ onNewChat, recentChats = [], onSelectChat, onC
           </button>
         </div>
 
-        {/* Dynamic Chat History (Expanded Only) */}
+        {/* Dynamic Chat History */}
         {isOpen && (
           <div className="flex flex-col mt-5 border-t border-[#1f1f21] pt-3 overflow-hidden flex-1">
             <div className="flex items-center justify-between px-2 mb-2">
@@ -149,16 +157,28 @@ export default function Sidebar({ onNewChat, recentChats = [], onSelectChat, onC
         )}
       </div>
 
-      {/* User Profile Footer */}
-      <div className={`p-3 border-t border-[#1f1f21] flex items-center ${isOpen ? 'gap-3' : 'justify-center'}`}>
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#9b72cb] to-[#d96570] flex items-center justify-center text-xs font-semibold text-white shrink-0">
-          D
-        </div>
-        {isOpen && (
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-medium text-[#e3e3e3] truncate">Dhruv Baberwal</span>
-            <span className="text-[10px] text-[#8e918f] truncate">Free Plan</span>
+      {/* User Profile Footer with Sign Out */}
+      <div className={`p-3 border-t border-[#1f1f21] flex items-center justify-between ${isOpen ? 'px-3' : 'justify-center'}`}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#9b72cb] to-[#d96570] flex items-center justify-center text-xs font-semibold text-white shrink-0">
+            {user?.name ? user.name[0].toUpperCase() : 'U'}
           </div>
+          {isOpen && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-medium text-[#e3e3e3] truncate">{user?.name || 'User'}</span>
+              <span className="text-[10px] text-[#8e918f] truncate">{user?.email || 'Free Plan'}</span>
+            </div>
+          )}
+        </div>
+
+        {isOpen && (
+          <button
+            onClick={handleLogout}
+            className="p-1.5 rounded-lg hover:bg-[#282a2c] text-[#8e918f] hover:text-red-400 transition-colors"
+            title="Sign out"
+          >
+            <LogOut size={16} />
+          </button>
         )}
       </div>
     </aside>
