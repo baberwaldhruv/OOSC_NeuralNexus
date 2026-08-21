@@ -13,29 +13,23 @@ if not api_key:
     raise ValueError("GEMINI_API_KEY is not set")
 client = genai.Client(api_key=api_key)
 def generate_response(messages: list, missing_fields: list) -> str:
+    missing_context = ""
+    if missing_fields:
+        missing_context = f"\nMissing required information to ask for: {', '.join(missing_fields)}."
 
-    contents = [RTI_SYSTEM_PROMPT]
+    system_instruction = f"{RTI_SYSTEM_PROMPT}\n{missing_context}"
 
-    contents.append(
-        f"""
-The structured case validator has determined that these fields
-are still missing:
-
-{missing_fields}
-
-Ask the citizen only for the most important missing information.
-Do not ask for information that is not in this list.
-"""
+    # Build conversation string
+    formatted_convo = "\n".join(
+        f"{m['role'].capitalize()}: {m['content']}" for m in messages
     )
-
-    for message in messages:
-        contents.append(
-            f"{message['role']}: {message['content']}"
-        )
 
     response = client.models.generate_content(
         model="gemini-3.5-flash-lite",
-        contents=contents
+        contents=formatted_convo,
+        config=types.GenerateContentConfig(
+            system_instruction=system_instruction
+        )
     )
 
     return response.text
