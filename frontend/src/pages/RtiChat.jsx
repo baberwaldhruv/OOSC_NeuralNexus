@@ -1,242 +1,332 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { rtiService } from "../services/apiServices";
+import { useAuth } from "../Context/AuthContext";
+import { FileCheck, Sparkles, X, ChevronRight } from "lucide-react";
+
+// Modular Component Imports
+import Sidebar from "../components/sidebar";
+import Header from "../components/Header";
+import WelcomeScreen from "../components/WelcomeScreen";
+import ChatStream from "../components/ChatStream";
+import PromptInput from "../components/PromptInput";
 
 export default function RtiChat() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [caseData, setCaseData] = useState(null);
+  const [recentChats, setRecentChats] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [caseData, setCaseData] = useState(null);
+  const [draft, setDraft] = useState(null);
+  const [showCasePanel, setShowCasePanel] = useState(false);
+
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [generatingDraft, setGeneratingDraft] = useState(false);
-  const [draft, setDraft] = useState(null);
-  const [error, setError] = useState("");
 
-  const chatBottomRef = useRef(null);
+  // Mouse coordinate state for the global interactive spotlight glow
+  const [mousePos, setMousePos] = useState({ x: 50, y: 30 });
+  const containerRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
-  useEffect(() => {
-    fetchSessionDetails();
-  }, [sessionId]);
+  const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePos({ x, y });
+  };
 
-  useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, sending]);
-
-  const fetchSessionDetails = async () => {
+  // Load chat history for Sidebar
+  const fetchRecentChats = async () => {
     try {
-      setLoading(true);
-      const [caseRes, msgRes] = await Promise.all([
-        rtiService.getCase(sessionId),
-        rtiService.getMessages(sessionId),
-      ]);
-      setCaseData(caseRes.data);
-      setMessages(msgRes.data || []);
+      const res = await rtiService.listCases();
+      const formatted = (res.data || []).map((c) => ({
+        id: c.id,
+        sessionId: c.session_id,
+        title: c.issue || "New Legal Draft",
+      }));
+      setRecentChats(formatted);
     } catch (err) {
-      setError(err.message || "Failed to load case session.");
-    } finally {
-      setLoading(false);
+      console.error("Failed to load chat history", err);
     }
   };
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    fetchRecentChats();
+  }, []);
+
+  // Load session messages and case details
+  useEffect(() => {
+    if (!sessionId) {
+      setMessages([]);
+      setCaseData(null);
+      setDraft(null);
+      return;
+    }
+
+    async function loadActiveSession() {
+      try {
+        setLoading(true);
+        const [caseRes, msgRes] = await Promise.allSettled([
+          rtiService.getCase(sessionId),
+          rtiService.getMessages(sessionId),
+        ]);
+
+        if (caseRes.status === "fulfilled") {
+          setCaseData(caseRes.value.data);
+        }
+
+        if (msgRes.status === "fulfilled") {
+          const mapped = (msgRes.value.data || []).map((m) => ({
+            role: m.role,
+            content: m.message || m.content,
+          }));
+          setMessages(mapped);
+        }
+      } catch (err) {
+        console.error("Error loading chat messages:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadActiveSession();
+  }, [sessionId]);
+
+  // Auto-scroll on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, sending]);
+
+  // Sidebar Actions
+  const handleNewChat = () => {
+    navigate("/");
+  };
+
+  const handleSelectChat = (chat) => {
+    navigate(`/${chat.sessionId}`);
+  };
+
+  const handleClearHistory = () => {
+    setRecentChats([]);
+    navigate("/");
+  };
+
+  // Send Prompt Handler
+  const handleSendMessage = async () => {
     if (!input.trim() || sending) return;
 
-    const userMessage = input.trim();
+    const userText = input.trim();
     setInput("");
-    setError("");
+
+    let activeSessionId = sessionId;
+
+    if (!activeSessionId) {
+      try {
+        setSending(true);
+        const newCaseRes = await rtiService.createCase();
+        activeSessionId = newCaseRes.data?.session_id;
+        navigate(`/${activeSessionId}`, { replace: true });
+        await fetchRecentChats();
+      } catch (err) {
+        alert(err.message || "Failed to initialize chat session.");
+        setSending(false);
+        return;
+      }
+    }
 
     // Optimistic UI update
     setMessages((prev) => [
       ...prev,
-      { role: "user", message: userMessage, created_at: new Date().toISOString() },
+      { role: "user", content: userText },
     ]);
     setSending(true);
 
     try {
-      const res = await rtiService.sendMessage(sessionId, userMessage);
-      const assistantReply = res.data?.response;
-      const updatedCase = res.data?.case;
-
-      if (assistantReply) {
+      const res = await rtiService.sendMessage(activeSessionId, userText);
+      if (res.data?.response) {
         setMessages((prev) => [
           ...prev,
-          {
-            role: "assistant",
-            message: assistantReply,
-            created_at: new Date().toISOString(),
-          },
+          { role: "assistant", content: res.data.response },
         ]);
       }
-
-      if (updatedCase) {
-        setCaseData(updatedCase);
+      if (res.data?.case) {
+        setCaseData(res.data.case);
       }
+      fetchRecentChats();
     } catch (err) {
-      setError(err.message || "Failed to send message.");
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: err.message || "Failed to fetch response. Please retry.",
+          isError: true,
+        },
+      ]);
     } finally {
       setSending(false);
     }
   };
 
+  // Generate Draft Action
   const handleGenerateDraft = async () => {
+    if (!sessionId) return;
     try {
       setGeneratingDraft(true);
-      setError("");
       const res = await rtiService.generateDraft(sessionId);
       setDraft(res.data?.draft);
+      setShowCasePanel(true);
     } catch (err) {
-      setError(err.message || "Failed to generate RTI draft.");
+      alert(err.message || "Failed to generate RTI draft.");
     } finally {
       setGeneratingDraft(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-gray-500 font-medium">
-        Loading case session...
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full bg-white">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/cases")}
-              className="text-sm font-medium text-gray-500 hover:text-gray-800"
-            >
-              ← Back to Cases
-            </button>
-            <h2 className="text-lg font-bold text-gray-800">
-              {caseData?.issue || "RTI Case Assistant"}
-            </h2>
-          </div>
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      className="relative flex h-screen w-screen bg-[#0e0f12] text-[#e3e3e3] font-sans antialiased overflow-hidden select-none"
+    >
+      {/* 1. Global Ambient Top Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#142442_0%,_#0a101d_45%,_#0e0f12_85%)] pointer-events-none z-0" />
 
-          {caseData?.ready_to_draft === 1 && (
-            <button
-              onClick={handleGenerateDraft}
-              disabled={generatingDraft}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              {generatingDraft ? "Generating Draft..." : "Generate Final Draft"}
-            </button>
-          )}
-        </div>
+      {/* 2. Global Interactive Mouse Spotlight Glow */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-all duration-300 ease-out z-0"
+        style={{
+          background: `radial-gradient(750px circle at ${mousePos.x}% ${mousePos.y}%, rgba(29, 78, 216, 0.20), rgba(15, 23, 42, 0.08) 50%, transparent 80%)`,
+        }}
+      />
 
-        {error && (
-          <div className="mx-6 mt-4 p-3 bg-red-100 text-red-700 text-sm rounded-lg">
-            {error}
-          </div>
-        )}
+      {/* 3. Seamless Glass Sidebar */}
+      <Sidebar
+        onNewChat={handleNewChat}
+        recentChats={recentChats}
+        onSelectChat={handleSelectChat}
+        onClearHistory={handleClearHistory}
+      />
 
-        {/* Message Log */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.length === 0 ? (
-            <div className="text-center text-gray-400 mt-12">
-              Start by describing your RTI issue (e.g., "Road construction delay in my locality").
+      {/* 4. Main Viewport */}
+      <div className="flex-1 flex flex-col h-full min-w-0 relative z-10 bg-transparent overflow-hidden">
+        {/* Floating Header */}
+        <Header />
+
+        {/* Optional Subheader for Active Case Info / Draft Trigger */}
+        {/* {sessionId && caseData && (
+          <div className="px-6 py-2 flex items-center justify-between border-b border-[#222630]/30 backdrop-blur-sm z-20">
+            <div className="flex items-center gap-2 text-xs text-[#94a3b8]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-medium text-[#cbd5e1] truncate max-w-sm">
+                {caseData?.issue || "RTI Case in progress"}
+              </span>
             </div>
-          ) : (
-            messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-gray-100 text-gray-800 rounded-bl-none"
-                  }`}
+
+            <div className="flex items-center gap-2">
+              {caseData?.ready_to_draft === 1 && (
+                <button
+                  onClick={handleGenerateDraft}
+                  disabled={generatingDraft}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white text-xs font-medium transition cursor-pointer shadow-lg shadow-emerald-900/30"
                 >
-                  <p className="whitespace-pre-wrap">{msg.message}</p>
+                  <Sparkles size={13} />
+                  <span>{generatingDraft ? "Drafting..." : "Generate Final Draft"}</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setShowCasePanel(!showCasePanel)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#1a1d24] hover:bg-[#232731] text-[#94a3b8] hover:text-[#f1f5f9] text-xs font-medium border border-[#272b35] transition cursor-pointer"
+              >
+                <FileCheck size={13} />
+                <span>{showCasePanel ? "Hide Details" : "View Case Details"}</span>
+              </button>
+            </div>
+          </div>
+        )} */}
+
+        {/* Dynamic Center Stage */}
+        <main className="flex-1 flex flex-row h-full min-h-0 relative z-10 overflow-hidden bg-transparent">
+          <div className="flex-1 flex flex-col h-full min-h-0 overflow-y-auto">
+            {!sessionId && messages.length === 0 ? (
+              <WelcomeScreen
+                input={input}
+                setInput={setInput}
+                onSubmit={handleSendMessage}
+                loading={sending}
+              />
+            ) : (
+              <>
+                <ChatStream
+                  messages={messages}
+                  loading={sending}
+                  messagesEndRef={messagesEndRef}
+                />
+
+                <PromptInput
+                  input={input}
+                  setInput={setInput}
+                  onSubmit={handleSendMessage}
+                  loading={sending}
+                />
+              </>
+            )}
+          </div>
+
+          {/* Collapsible Case Info & Draft Side Drawer */}
+          {showCasePanel && (
+            <div className="w-80 border-l border-[#222630]/60 bg-[#121419]/90 backdrop-blur-xl p-5 flex flex-col h-full overflow-y-auto animate-in slide-in-from-right duration-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-[#f1f5f9]">Case Intelligence</h3>
+                <button
+                  onClick={() => setShowCasePanel(false)}
+                  className="p-1 rounded-md hover:bg-[#1e222b] text-[#64748b] hover:text-white"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs bg-[#17191e] p-3.5 rounded-xl border border-[#272b35] mb-4">
+                <div>
+                  <span className="text-[#64748b] block mb-0.5">Issue</span>
+                  <span className="text-[#e2e8f0] font-medium">{caseData?.issue || "Pending..."}</span>
+                </div>
+                <div>
+                  <span className="text-[#64748b] block mb-0.5">Target Department</span>
+                  <span className="text-[#e2e8f0] font-medium">{caseData?.department || "Pending..."}</span>
+                </div>
+                <div>
+                  <span className="text-[#64748b] block mb-0.5">Location</span>
+                  <span className="text-[#e2e8f0]">
+                    {[caseData?.village, caseData?.city, caseData?.district, caseData?.state]
+                      .filter(Boolean)
+                      .join(", ") || "Pending..."}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[#64748b] block mb-0.5">Applicant</span>
+                  <span className="text-[#e2e8f0]">{caseData?.applicant_name || "Pending..."}</span>
                 </div>
               </div>
-            ))
-          )}
 
-          {sending && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 text-gray-400 text-sm px-4 py-2 rounded-2xl rounded-bl-none animate-pulse">
-                Analyzing details...
-              </div>
+              {draft && (
+                <div className="flex-1 flex flex-col">
+                  <h4 className="text-xs font-semibold text-[#f1f5f9] mb-2">Application Draft</h4>
+                  <div className="flex-1 bg-[#17191e] border border-[#3b4252] rounded-xl p-3 overflow-y-auto">
+                    <pre className="text-xs text-[#cbd5e1] whitespace-pre-wrap font-sans leading-relaxed">
+                      {draft}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-
-          <div ref={chatBottomRef} />
-        </div>
-
-        {/* Message Input Form */}
-        <form
-          onSubmit={handleSendMessage}
-          className="p-4 bg-white border-t border-gray-200 flex gap-2"
-        >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your response here..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
-          />
-          <button
-            type="submit"
-            disabled={sending || !input.trim()}
-            className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            Send
-          </button>
-        </form>
-      </div>
-
-      {/* Case Details / Draft Sidebar */}
-      <div className="w-96 border-l border-gray-200 bg-gray-50 flex flex-col h-full overflow-y-auto p-5">
-        <h3 className="text-base font-bold text-gray-800 mb-4">Extracted Case Info</h3>
-
-        <div className="space-y-3 text-xs bg-white p-4 rounded-lg border border-gray-200 mb-4">
-          <div>
-            <span className="font-semibold text-gray-600 block">Issue:</span>
-            <span className="text-gray-800">{caseData?.issue || "Pending..."}</span>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-600 block">Department:</span>
-            <span className="text-gray-800">{caseData?.department || "Pending..."}</span>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-600 block">Location:</span>
-            <span className="text-gray-800">
-              {[caseData?.village, caseData?.city, caseData?.district, caseData?.state]
-                .filter(Boolean)
-                .join(", ") || "Pending..."}
-            </span>
-          </div>
-          <div>
-            <span className="font-semibold text-gray-600 block">Applicant:</span>
-            <span className="text-gray-800">
-              {caseData?.applicant_name || "Pending..."}
-            </span>
-          </div>
-        </div>
-
-        {draft && (
-          <div className="flex-1 flex flex-col">
-            <h4 className="text-sm font-bold text-gray-800 mb-2">Application Draft</h4>
-            <div className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-3 overflow-y-auto">
-              <pre className="text-xs text-gray-800 whitespace-pre-wrap font-sans">
-                {draft}
-              </pre>
-            </div>
-          </div>
-        )}
+        </main>
       </div>
     </div>
   );

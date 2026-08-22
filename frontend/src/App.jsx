@@ -5,7 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import RtiGeminiChat from "./components/chat/RtiGeminiChat";
+import RtiChat from "./pages/RtiChat";
 
 export default function App() {
   return (
@@ -16,13 +16,12 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Direct Gemini Workspace */}
+          {/* Unified Workspace Routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<RtiGeminiChat />} />
-            <Route path="/:sessionId" element={<RtiGeminiChat />} />
-            {/* Redirect any legacy /cases route directly to home */}
+            <Route path="/" element={<RtiChat />} />
+            <Route path="/:sessionId" element={<RtiChat />} />
             <Route path="/cases" element={<Navigate to="/" replace />} />
-            <Route path="/cases/:sessionId" element={<RtiGeminiChat />} />
+            <Route path="/cases/:sessionId" element={<RtiChat />} />
           </Route>
 
           {/* Catch-all */}
