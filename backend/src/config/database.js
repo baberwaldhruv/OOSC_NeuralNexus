@@ -1,8 +1,14 @@
 const { Pool } = require("pg");
 
+if (!process.env.DATABASE_URL) {
+  console.error("CRITICAL: DATABASE_URL is missing in your .env file.");
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // Convert SQLite positional params (?) to PostgreSQL ($1, $2, ...)
@@ -13,7 +19,7 @@ function formatSql(sql) {
 
 async function run(sql, params = []) {
   let formattedSql = formatSql(sql);
-  
+
   // If it's an INSERT, automatically append RETURNING id to match SQLite's this.lastID
   if (/^\s*insert\s+/i.test(formattedSql) && !/returning/i.test(formattedSql)) {
     formattedSql += " RETURNING id";

@@ -45,7 +45,7 @@ app.use("/api/rti", rtiRoutes);
 /*
  * These will be implemented next.
  */
-app.use("/api/rights", require("./routes/rights.routes"));
+app.use("/api/rights-navigator", require("./routes/rights.routes"));
 app.use("/api/schemes", require("./routes/scheme.routes"));
 app.use("/api/forms", require("./routes/form.routes"));
 
